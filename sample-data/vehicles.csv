@@ -1,0 +1,13 @@
+unit,vehicle,vin,depot,service_interval_mi,last_service_odometer,current_odometer,open_defect
+V-101,Cargo van,SAMPLE-0001,Main Depot,5000,47600,52640,Tires/wheels
+V-102,Cargo van,SAMPLE-0002,Main Depot,10000,30050,38120,
+V-103,Box truck,SAMPLE-0003,Main Depot,10000,77900,84310,
+V-104,Cargo van,SAMPLE-0004,Main Depot,5000,37400,41950,
+V-105,Cargo van,SAMPLE-0005,Main Depot,5000,26100,29400,
+V-106,Box truck,SAMPLE-0006,North Hub,10000,52800,62110,
+V-107,Cargo van,SAMPLE-0007,Main Depot,5000,15900,18450,
+V-108,Cargo van,SAMPLE-0008,East Terminal,10000,39700,46800,
+V-109,Cutaway,SAMPLE-0009,Main Depot,7500,70200,74900,
+V-110,Cargo van,SAMPLE-0010,Main Depot,7500,22000,27100,
+V-111,Cargo van,SAMPLE-0011,Main Depot,5000,33200,36100,
+V-112,Cargo van,SAMPLE-0012,Main Depot,5000,41000,44050,
