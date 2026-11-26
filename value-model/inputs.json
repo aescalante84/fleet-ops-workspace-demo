@@ -1,0 +1,61 @@
+{
+  "_note": "Synthetic customer. Replace every 'base' value with the customer's actuals from discovery. Shift-call volume and audit hours are stated for baseline_vehicles and scale with fleet size.",
+  "fleet": {
+    "vehicles": 50,
+    "baseline_vehicles": 50,
+    "drivers_per_vehicle": 1,
+    "office_staff_per_vehicle": 0.16,
+    "miles_per_vehicle": 30000,
+    "workdays": 250
+  },
+  "rates": {
+    "manager_loaded_hr": 42.34,
+    "driver_loaded_hr": 29.71
+  },
+  "low": {
+    "calls_per_day": 20,
+    "minutes_per_call": 3,
+    "call_reduction": 0.4,
+    "audit_hrs_week": 2,
+    "audit_saved": 0.5,
+    "maint_per_mile": 0.1,
+    "pm_savings": 0.06,
+    "avoided_share": 0.15,
+    "tow": 265,
+    "days_out": 2,
+    "cost_per_day_out": 130
+  },
+  "base": {
+    "calls_per_day": 30,
+    "minutes_per_call": 3,
+    "call_reduction": 0.5,
+    "audit_hrs_week": 3,
+    "audit_saved": 0.5,
+    "maint_per_mile": 0.13,
+    "pm_savings": 0.075,
+    "avoided_share": 0.2,
+    "tow": 265,
+    "days_out": 2,
+    "cost_per_day_out": 290
+  },
+  "high": {
+    "calls_per_day": 40,
+    "minutes_per_call": 4,
+    "call_reduction": 0.6,
+    "audit_hrs_week": 4,
+    "audit_saved": 0.5,
+    "maint_per_mile": 0.15,
+    "pm_savings": 0.09,
+    "avoided_share": 0.25,
+    "tow": 265,
+    "days_out": 2,
+    "cost_per_day_out": 448
+  },
+  "cost": {
+    "driver_license_mo": 7,
+    "staff_license_mo": 14,
+    "setup_hours": 40,
+    "training_hrs_per_driver": 0.5
+  },
+  "unscheduled_event_every_miles": 38249
+}
