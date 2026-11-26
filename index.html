@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fleet Ops Pilot: Interactive Value Model</title>
+<style>
+  :root { --ink:#1b2430; --mute:#5b6675; --line:#dfe4ea; --bg:#f7f8fa; --card:#fff; --accent:#1f6f5c; --hard:#1f6f5c; --cap:#8a6d1f; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; color:var(--ink); background:var(--bg); }
+  main { max-width:960px; margin:0 auto; padding:28px 20px 60px; }
+  h1 { font-size:26px; margin:0 0 4px; }
+  .sub { color:var(--mute); margin:0 0 22px; }
+  .grid { display:grid; grid-template-columns:1fr 1.15fr; gap:20px; }
+  @media (max-width:760px){ .grid{ grid-template-columns:1fr; } }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px; }
+  h2 { font-size:13px; letter-spacing:.06em; text-transform:uppercase; color:var(--mute); margin:0 0 12px; }
+  .seg { display:flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; margin-bottom:16px; }
+  .seg button { flex:1; padding:9px; border:0; background:#fff; font:inherit; cursor:pointer; color:var(--mute); }
+  .seg button[aria-pressed=true] { background:var(--ink); color:#fff; }
+  .row { margin:0 0 14px; }
+  .row label { display:flex; justify-content:space-between; font-size:14px; }
+  .row label b { font-variant-numeric:tabular-nums; }
+  input[type=range] { width:100%; accent-color:var(--accent); }
+  .hint { font-size:12px; color:var(--mute); }
+  .big { font-size:40px; font-weight:700; line-height:1.1; font-variant-numeric:tabular-nums; }
+  .kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:14px 0 6px; }
+  .kpi { background:var(--bg); border-radius:8px; padding:10px; }
+  .kpi .v { font-size:20px; font-weight:650; font-variant-numeric:tabular-nums; }
+  .kpi .l { font-size:12px; color:var(--mute); }
+  table { width:100%; border-collapse:collapse; margin-top:10px; font-size:14px; }
+  td { padding:7px 0; border-top:1px solid var(--line); }
+  td:last-child { text-align:right; font-variant-numeric:tabular-nums; }
+  .tag { display:inline-block; font-size:11px; padding:1px 7px; border-radius:99px; margin-left:6px; color:#fff; vertical-align:middle; }
+  .tag.h { background:var(--hard); } .tag.c { background:var(--cap); }
+  .bar { display:flex; height:14px; border-radius:7px; overflow:hidden; margin:8px 0 4px; background:var(--line); }
+  .bar i { display:block; } .bar .h { background:var(--hard); } .bar .c { background:var(--cap); }
+  .foot { font-size:13px; color:var(--mute); margin-top:22px; }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Fleet Ops Pilot: Interactive Value Model</h1>
+  <p class="sub">A fictional customer (Blue Ridge Delivery Co.). Change the fleet and the scenario, and watch value, cost, and payback move. Same math as <code>value-model/model.py</code>.</p>
+
+  <div class="grid">
+    <section class="card">
+      <h2>Inputs</h2>
+      <div class="seg" id="seg">
+        <button data-s="low" aria-pressed="false">Low</button>
+        <button data-s="base" aria-pressed="true">Base</button>
+        <button data-s="high" aria-pressed="false">High</button>
+      </div>
+      <div class="row"><label>Vehicles <b id="o_vehicles"></b></label><input id="vehicles" type="range" min="10" max="300" step="5" value="50"></div>
+      <div class="row"><label>Miles per vehicle per year <b id="o_miles"></b></label><input id="miles" type="range" min="10000" max="60000" step="1000" value="30000"></div>
+      <div class="row"><label>Routine shift calls per day (at 50 vehicles) <b id="o_calls"></b></label><input id="calls" type="range" min="5" max="60" step="1" value="30"><div class="hint">Count these in the baseline week. It is the number that moves the result most.</div></div>
+      <div class="row"><label>Call reduction <b id="o_red"></b></label><input id="red" type="range" min="0.1" max="0.8" step="0.05" value="0.5"></div>
+      <div class="row"><label>Share of breakdowns avoidable <b id="o_avoid"></b></label><input id="avoid" type="range" min="0.05" max="0.4" step="0.05" value="0.2"><div class="hint">An assumption. Check it against the customer's repair invoices.</div></div>
+    </section>
+
+    <section class="card">
+      <h2>Result</h2>
+      <div class="big" id="total"></div>
+      <div class="hint">estimated annual value</div>
+      <div class="bar"><i class="h" id="barh"></i><i class="c" id="barc"></i></div>
+      <div class="hint"><span class="tag h">hard</span> cash not spent &nbsp; <span class="tag c">capacity</span> staff hours returned</div>
+      <div class="kpis">
+        <div class="kpi"><div class="v" id="ratio"></div><div class="l">value to year-one cost</div></div>
+        <div class="kpi"><div class="v" id="payback"></div><div class="l">payback, hard $ only</div></div>
+        <div class="kpi"><div class="v" id="cost"></div><div class="l">year-one cost</div></div>
+      </div>
+      <table>
+        <tr><td>Shift-call time recovered <span class="tag c">capacity</span></td><td id="A"></td></tr>
+        <tr><td>Audit prep time <span class="tag c">capacity</span></td><td id="D"></td></tr>
+        <tr><td>Preventive maintenance <span class="tag h">hard</span></td><td id="B"></td></tr>
+        <tr><td>Breakdowns, tows, downtime avoided <span class="tag h">hard</span></td><td id="C"></td></tr>
+      </table>
+    </section>
+  </div>
+
+  <p class="foot">Synthetic inputs, sourced in <a href="value-model/assumptions.md">assumptions.md</a>. Fines are deliberately not counted. PM savings are set at half the published range. Replace every value with the customer's actuals from discovery. By Alberto Escalante · <a href="https://github.com/aescalante84/fleet-ops-workspace-demo">source</a></p>
+</main>
+<script>
+const CFG = {
+  fleet:{vehicles:50,baseline_vehicles:50,drivers_per_vehicle:1.0,office_staff_per_vehicle:0.16,miles_per_vehicle:30000,workdays:250},
+  rates:{manager_loaded_hr:42.34,driver_loaded_hr:29.71},
+  low:{calls_per_day:20,minutes_per_call:3,call_reduction:0.4,audit_hrs_week:2,audit_saved:0.5,maint_per_mile:0.10,pm_savings:0.06,avoided_share:0.15,tow:265,days_out:2,cost_per_day_out:130},
+  base:{calls_per_day:30,minutes_per_call:3,call_reduction:0.5,audit_hrs_week:3,audit_saved:0.5,maint_per_mile:0.13,pm_savings:0.075,avoided_share:0.2,tow:265,days_out:2,cost_per_day_out:290},
+  high:{calls_per_day:40,minutes_per_call:4,call_reduction:0.6,audit_hrs_week:4,audit_saved:0.5,maint_per_mile:0.15,pm_savings:0.09,avoided_share:0.25,tow:265,days_out:2,cost_per_day_out:448},
+  cost:{driver_license_mo:7,staff_license_mo:14,setup_hours:40,training_hrs_per_driver:0.5},
+  unscheduled_event_every_miles:38249
+};
+
+function compute(cfg, s) {
+  const f=cfg.fleet, r=cfg.rates, c=cfg.cost;
+  const scale=f.vehicles/f.baseline_vehicles, drivers=f.vehicles*f.drivers_per_vehicle;
+  const staff=Math.round(f.vehicles*f.office_staff_per_vehicle);
+  const callHours=s.calls_per_day*scale*s.minutes_per_call/60*f.workdays*s.call_reduction;
+  const A=callHours*(r.manager_loaded_hr+r.driver_loaded_hr);
+  const B=f.vehicles*f.miles_per_vehicle*s.maint_per_mile*s.pm_savings;
+  const events=Math.round(f.vehicles*f.miles_per_vehicle/cfg.unscheduled_event_every_miles);
+  const C=events*s.avoided_share*(s.tow+s.days_out*s.cost_per_day_out);
+  const D=s.audit_hrs_week*scale*52*s.audit_saved*r.manager_loaded_hr;
+  const hard=B+C, capacity=A+D, total=hard+capacity;
+  const licenses=(drivers*c.driver_license_mo+staff*c.staff_license_mo)*12;
+  const setup=c.setup_hours*r.manager_loaded_hr+c.training_hrs_per_driver*drivers*r.driver_loaded_hr;
+  const yearOne=licenses+setup;
+  return {A,B,C,D,hard,capacity,total,yearOne,ratio:total/yearOne,payback:yearOne/(hard/12)};
+}
+
+if (typeof document === 'undefined') { module.exports = { compute, CFG }; }
+else {
+  let scenario='base';
+  const $=id=>document.getElementById(id);
+  const usd=n=>'$'+Math.round(n).toLocaleString('en-US');
+  const ids=['vehicles','miles','calls','red','avoid'];
+  function syncSliders(){
+    const s=CFG[scenario];
+    $('calls').value=s.calls_per_day; $('red').value=s.call_reduction; $('avoid').value=s.avoided_share;
+  }
+  function render(){
+    const cfg=JSON.parse(JSON.stringify(CFG));
+    cfg.fleet.vehicles=+$('vehicles').value; cfg.fleet.miles_per_vehicle=+$('miles').value;
+    const s=Object.assign({},cfg[scenario],{calls_per_day:+$('calls').value,call_reduction:+$('red').value,avoided_share:+$('avoid').value});
+    const x=compute(cfg,s);
+    $('o_vehicles').textContent=cfg.fleet.vehicles; $('o_miles').textContent=(+$('miles').value).toLocaleString('en-US');
+    $('o_calls').textContent=$('calls').value; $('o_red').textContent=Math.round($('red').value*100)+'%'; $('o_avoid').textContent=Math.round($('avoid').value*100)+'%';
+    $('total').textContent=usd(x.total);
+    $('barh').style.width=(x.hard/x.total*100)+'%'; $('barc').style.width=(x.capacity/x.total*100)+'%';
+    $('ratio').textContent=x.ratio.toFixed(1)+'x'; $('payback').textContent=isFinite(x.payback)?x.payback.toFixed(1)+' mo':'n/a'; $('cost').textContent=usd(x.yearOne);
+    $('A').textContent=usd(x.A); $('B').textContent=usd(x.B); $('C').textContent=usd(x.C); $('D').textContent=usd(x.D);
+  }
+  ids.forEach(i=>$(i).addEventListener('input',render));
+  document.querySelectorAll('#seg button').forEach(b=>b.addEventListener('click',()=>{
+    scenario=b.dataset.s; document.querySelectorAll('#seg button').forEach(o=>o.setAttribute('aria-pressed',o===b));
+    syncSliders(); render();
+  }));
+  syncSliders(); render();
+}
+</script>
+</body>
+</html>
